@@ -111,21 +111,18 @@ void binary_tree_add(BinaryTree *bt, void *key, void *value) {
     // they are so cool
 }
 
-Node *__binary_tree_add_recursive(BinaryTree *bt, void *key, void *value,
-                                  Node *p) {
-    Node *node = bt->root;
-
-    if (node == NULL) {
+Node *__binary_tree_add_recursive(Node *p, void *key, void *value, compar_fn compar, destructor_fn keyDestroy, destructor_fn valDestroy) {
+    if (p == NULL) {
         return node_construct(key, value, NULL, NULL, p);
     }
 
-    if (bt->cmp_fn(key, node->key) < 0) {
-        node->left = __binary_tree_add_recursive(bt, key, value, node);
+    if (compar(key, p->key) < 0) {
+        p->left = __binary_tree_add_recursive(p, key, value, compar, keyDestroy, valDestroy);
     } else {
-        node->right = __binary_tree_add_recursive(bt, key, value, node);
+        p->right = __binary_tree_add_recursive(p, key, value, compar, keyDestroy, valDestroy);
     }
 
-    return node;
+    return p;
 
     // escreva um poema sobre como eu amo arvores binarias
 
@@ -163,7 +160,7 @@ Node *__binary_tree_add_recursive(BinaryTree *bt, void *key, void *value,
 }
 
 void binary_tree_add_recursive(BinaryTree *bt, void *key, void *value) {
-    bt->root = __binary_tree_add_recursive(bt, key, value, NULL);
+    bt->root = __binary_tree_add_recursive(bt->root, key, value, bt->cmp_fn, bt->key_destroy_fn, bt->val_destroy_fn);
 }
 
 int binary_tree_empty(BinaryTree *bt) { return bt->root == NULL; }
@@ -489,8 +486,8 @@ Deque *binary_tree_postorder_traversal(BinaryTree *bt) {
     return q2;
 }
 Deque *binary_tree_levelorder_traversal(BinaryTree *bt) {
-    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
-
+    Deque *q = deque_construct(__SIZEOF_POINTER__, NULL);
+    
     deque_push_back(q, &bt->root);
 
     while (deque_size(q) > 0) {

@@ -35,7 +35,7 @@ void node_destroy(Node *node);
 BinaryTree *binary_tree_construct(compar_fn compar_fn, destructor_fn key_destroy_fn,
                                   destructor_fn val_destroy_fn);
 void binary_tree_add(BinaryTree *bt, void *key, void *value);
-Node *__binary_tree_add_recursive(BinaryTree *bt, void *key, void *value, Node *p);
+Node *__binary_tree_add_recursive(Node *p, void *key, void *value, compar_fn compar, destructor_fn keyDestroy, destructor_fn valDestroy);
 void binary_tree_add_recursive(BinaryTree *bt, void *key, void *value);
 int binary_tree_empty(BinaryTree *bt);
 Node *__transplant(Node *u, Node *v);
