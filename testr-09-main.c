@@ -61,18 +61,17 @@ int main()
         binary_tree_add(bt, strdup(nome), person_construct(nome, idade, altura));
     }
 
-    Vector *v = binary_tree_levelorder_traversal(bt);
+    Deque *v = binary_tree_levelorder_traversal(bt);
 
-    for (i = 0; i < vector_size(v); i++)
+    for (i = 0; i < deque_size(v); i++)
     {
-        KeyValPair *pair = vector_get(v, i);
+        KeyValPair *pair = *(KeyValPair **)deque_get(v, i);
         Person *p = pair->value;
         printf("%s %d %.2f\n", p->name, p->idade, p->altura);
-        key_val_pair_destroy(pair);
     }
 
     binary_tree_destroy(bt);
-    vector_destroy(v);
+    deque_destroy(v);
 
     return 0;
 }

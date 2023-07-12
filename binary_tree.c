@@ -489,6 +489,8 @@ Deque *binary_tree_postorder_traversal(BinaryTree *bt) {
 }
 Deque *binary_tree_levelorder_traversal(BinaryTree *bt) {
     Deque *q = deque_construct(__SIZEOF_POINTER__, NULL);
+
+    Deque *r = deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
     
     deque_push_back(q, &bt->root);
 
@@ -496,17 +498,19 @@ Deque *binary_tree_levelorder_traversal(BinaryTree *bt) {
         Node **raw = deque_pop_front(q);
         Node *node = *raw;
         free(raw);
+        
+        if (node) {
+            KeyValPair *kvp = key_val_pair_construct(node->key, node->value);
+            deque_push_front(r, &kvp);
 
-        if (node->left != NULL)
             deque_push_back(q, &node->left);
-
-        if (node->right != NULL)
             deque_push_back(q, &node->right);
-
-        deque_push_back(q, &node);
+        }
     }
 
-    return q;
+    deque_destroy(q);
+
+    return r;
 }
 
 void __binary_tree_inorder_traversal_recursive(Node *root, Deque *q) {
