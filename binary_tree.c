@@ -430,13 +430,14 @@ Deque *binary_tree_inorder_traversal(BinaryTree *bt) {
     return q;
 }
 Deque *binary_tree_preorder_traversal(BinaryTree *bt) {
-    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
 
     Node *node = bt->root;
 
     while (node != NULL) {
         if (node->left == NULL) {
-            deque_push_back(q, &node);
+            KeyValPair *kvp = key_val_pair_construct(node->key, node->value);
+            deque_push_front(q, &kvp);
             node = node->right;
         } else {
             Node *prev = node->left;
@@ -445,7 +446,8 @@ Deque *binary_tree_preorder_traversal(BinaryTree *bt) {
                 prev = prev->right;
 
             if (prev->right == NULL) {
-                deque_push_back(q, &node);
+                KeyValPair *kvp = key_val_pair_construct(node->key, node->value);
+                deque_push_front(q, &kvp);
                 prev->right = node;
                 node = node->left;
             } else {
