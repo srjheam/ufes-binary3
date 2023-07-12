@@ -1,5 +1,28 @@
+VALGRINDOUT = valgrind-out.txt
+
+FLAGS = -Wall -Wextra -Wno-unused-result -Wno-unused-parameter -pedantic -ggdb3 -g
+
 all:
-	gcc -o main main.c binary_tree.c black_magic.c deque.c person.c -I. -Wall -Wall -Wextra -Werror -pedantic -ggdb3 -lm
+	gcc $(FLAGS) -o main main.c binary_tree.c black_magic.c deque.c person.c -I. -lm
 
 clean:
 	rm main
+
+zip: clean
+	zip -r jheam_ross_2022100890.zip . \
+		-x dados/\* \
+		   scripts/\* \
+		   *.zip \
+		   *.txt
+
+valgrind: all
+	rm -f $(VALGRINDOUT)
+
+	valgrind --leak-check=full \
+			 --show-leak-kinds=all \
+			 --track-origins=yes \
+			 --verbose \
+			 --log-file=$(VALGRINDOUT) \
+			 ./main
+
+	@echo "Head to $(VALGRINDOUT)"
