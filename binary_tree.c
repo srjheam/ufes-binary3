@@ -244,12 +244,12 @@ Node *__node_min(Node *node) {
     return node;
 }
 
-KeyValPair binary_tree_min(BinaryTree *bt) {
+KeyValPair *binary_tree_min(BinaryTree *bt) {
     Node *node = bt->root;
 
     node = __node_min(node);
 
-    KeyValPair kvp = {node->key, node->value};
+    KeyValPair *kvp = key_val_pair_construct(node->key, node->value);
     return kvp;
 }
 
@@ -260,12 +260,12 @@ Node *__node_max(Node *node) {
     return node;
 }
 
-KeyValPair binary_tree_max(BinaryTree *bt) {
+KeyValPair *binary_tree_max(BinaryTree *bt) {
     Node *node = bt->root;
 
     node = __node_max(node);
 
-    KeyValPair kvp = {node->key, node->value};
+    KeyValPair *kvp = key_val_pair_construct(node->key, node->value);
     return kvp;
 
     // Write a poem about Jheam
@@ -305,7 +305,7 @@ KeyValPair binary_tree_max(BinaryTree *bt) {
     //    v
 }
 
-KeyValPair binary_tree_pop_min(BinaryTree *bt) {
+KeyValPair *binary_tree_pop_min(BinaryTree *bt) {
     Node *node = bt->root;
     Node *prev = NULL;
 
@@ -314,7 +314,7 @@ KeyValPair binary_tree_pop_min(BinaryTree *bt) {
         node = node->left;
     }
 
-    KeyValPair kvp = {node->key, node->value};
+    KeyValPair *kvp = key_val_pair_construct(node->key, node->value);
 
     if (prev == NULL)
         bt->root = node->right;
@@ -326,7 +326,7 @@ KeyValPair binary_tree_pop_min(BinaryTree *bt) {
     return kvp;
 }
 
-KeyValPair binary_tree_pop_max(BinaryTree *bt) {
+KeyValPair *binary_tree_pop_max(BinaryTree *bt) {
     Node *node = bt->root;
     Node *prev = NULL;
 
@@ -335,7 +335,7 @@ KeyValPair binary_tree_pop_max(BinaryTree *bt) {
         node = node->right;
     }
 
-    KeyValPair kvp = {node->key, node->value};
+    KeyValPair *kvp = key_val_pair_construct(node->key, node->value);
 
     if (prev == NULL)
         bt->root = node->left;
