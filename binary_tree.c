@@ -374,8 +374,62 @@ void binary_tree_destroy(BinaryTree *bt) {
 // a funcao abaixo pode ser util para debug, mas nao eh obrigatoria.
 // void binary_tree_print(BinaryTree *bt);
 
-Deque *binary_tree_inorder_traversal(BinaryTree *bt);
-Deque *binary_tree_preorder_traversal(BinaryTree *bt);
+Deque *binary_tree_inorder_traversal(BinaryTree *bt) {
+    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+
+    Node *node = bt->root;
+
+    while (node != NULL) {
+        if (node->left == NULL) {
+            deque_push_back(q, &node);
+            node = node->right;
+        } else {
+            Node *prev = node->left;
+
+            while (prev->right != NULL && prev->right != node)
+                prev = prev->right;
+
+            if (prev->right == NULL) {
+                prev->right = node;
+                node = node->left;
+            } else {
+                deque_push_back(q, &node);
+                prev->right = NULL;
+                node = node->right;
+            }
+        }
+    }
+
+    return q;
+}
+Deque *binary_tree_preorder_traversal(BinaryTree *bt) {
+    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+
+    Node *node = bt->root;
+
+    while (node != NULL) {
+        if (node->left == NULL) {
+            deque_push_back(q, &node);
+            node = node->right;
+        } else {
+            Node *prev = node->left;
+
+            while (prev->right != NULL && prev->right != node)
+                prev = prev->right;
+
+            if (prev->right == NULL) {
+                deque_push_back(q, &node);
+                prev->right = node;
+                node = node->left;
+            } else {
+                prev->right = NULL;
+                node = node->right;
+            }
+        }
+    }
+
+    return q;
+}
 Deque *binary_tree_postorder_traversal(BinaryTree *bt) {
     Deque *q1 = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
     Deque *q2 = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
@@ -402,10 +456,60 @@ Deque *binary_tree_postorder_traversal(BinaryTree *bt) {
     // my own deque push back has the opposite meaning it should had
     return q2;
 }
-Deque *binary_tree_levelorder_traversal(BinaryTree *bt);
+Deque *binary_tree_levelorder_traversal(BinaryTree *bt) {
+    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
 
-Deque *binary_tree_inorder_traversal_recursive(BinaryTree *bt);
-Deque *binary_tree_preorder_traversal_recursive(BinaryTree *bt);
+    deque_push_back(q, &bt->root);
+
+    while (deque_size(q) > 0) {
+        Node **raw = deque_pop_front(q);
+        Node *node = *raw;
+        free(raw);
+
+        if (node->left != NULL)
+            deque_push_back(q, &node->left);
+
+        if (node->right != NULL)
+            deque_push_back(q, &node->right);
+
+        deque_push_back(q, &node);
+    }
+
+    return q;
+}
+
+void __binary_tree_inorder_traversal_recursive(Node *root, Deque *q) {
+    if (root == NULL)
+        return;
+
+    __binary_tree_inorder_traversal_recursive(root->left, q);
+
+    deque_push_front(q, &root);
+
+    __binary_tree_inorder_traversal_recursive(root->right, q);
+}
+
+Deque *binary_tree_inorder_traversal_recursive(BinaryTree *bt) {
+    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+    __binary_tree_inorder_traversal_recursive(bt->root, q);
+    return q;
+}
+
+void __binary_tree_preorder_traversal_recursive(Node *root, Deque *q) {
+    if (root == NULL)
+        return;
+
+    deque_push_front(q, &root);
+
+    __binary_tree_preorder_traversal_recursive(root->left, q);
+    __binary_tree_preorder_traversal_recursive(root->right, q);
+}
+
+Deque *binary_tree_preorder_traversal_recursive(BinaryTree *bt) {
+    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+    __binary_tree_preorder_traversal_recursive(bt->root, q);
+    return q;
+}
 
 void __binary_tree_postorder_traversal_recursive(Node *root, Deque *q) {
     if (root == NULL)
