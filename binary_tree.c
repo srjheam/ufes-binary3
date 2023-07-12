@@ -113,13 +113,15 @@ void binary_tree_add(BinaryTree *bt, void *key, void *value) {
 
 Node *__binary_tree_add_recursive(Node *p, void *key, void *value, compar_fn compar, destructor_fn keyDestroy, destructor_fn valDestroy) {
     if (p == NULL) {
-        return node_construct(key, value, NULL, NULL, p);
+        return node_construct(key, value, NULL, NULL, NULL);
     }
 
     if (compar(key, p->key) < 0) {
         p->left = __binary_tree_add_recursive(p, key, value, compar, keyDestroy, valDestroy);
+        p->left->parent = p;
     } else {
         p->right = __binary_tree_add_recursive(p, key, value, compar, keyDestroy, valDestroy);
+        p->right->parent = p;
     }
 
     return p;
