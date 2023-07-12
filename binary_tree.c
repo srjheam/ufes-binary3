@@ -519,13 +519,14 @@ void __binary_tree_inorder_traversal_recursive(Node *root, Deque *q) {
 
     __binary_tree_inorder_traversal_recursive(root->left, q);
 
-    deque_push_front(q, &root);
+    KeyValPair *kvp = key_val_pair_construct(root->key, root->value);
+    deque_push_front(q, &kvp);
 
     __binary_tree_inorder_traversal_recursive(root->right, q);
 }
 
 Deque *binary_tree_inorder_traversal_recursive(BinaryTree *bt) {
-    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
     __binary_tree_inorder_traversal_recursive(bt->root, q);
     return q;
 }
@@ -534,14 +535,15 @@ void __binary_tree_preorder_traversal_recursive(Node *root, Deque *q) {
     if (root == NULL)
         return;
 
-    deque_push_front(q, &root);
+    KeyValPair *kvp = key_val_pair_construct(root->key, root->value);
+    deque_push_front(q, &kvp);
 
     __binary_tree_preorder_traversal_recursive(root->left, q);
     __binary_tree_preorder_traversal_recursive(root->right, q);
 }
 
 Deque *binary_tree_preorder_traversal_recursive(BinaryTree *bt) {
-    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
     __binary_tree_preorder_traversal_recursive(bt->root, q);
     return q;
 }
@@ -553,11 +555,12 @@ void __binary_tree_postorder_traversal_recursive(Node *root, Deque *q) {
     __binary_tree_postorder_traversal_recursive(root->left, q);
     __binary_tree_postorder_traversal_recursive(root->right, q);
 
-    deque_push_front(q, &root);
+    KeyValPair *kvp = key_val_pair_construct(root->key, root->value);
+    deque_push_front(q, &kvp);
 }
 
 Deque *binary_tree_postorder_traversal_recursive(BinaryTree *bt) {
-    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
     __binary_tree_postorder_traversal_recursive(bt->root, q);
     return q;
 }
