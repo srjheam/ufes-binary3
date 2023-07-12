@@ -463,7 +463,7 @@ Deque *binary_tree_postorder_traversal(BinaryTree *bt) {
     Deque *q1 =
         deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
     Deque *q2 =
-        deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+        deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
 
     deque_push_front(q1, &bt->root);
 
@@ -478,7 +478,8 @@ Deque *binary_tree_postorder_traversal(BinaryTree *bt) {
         if (node->right != NULL)
             deque_push_front(q1, &node->right);
 
-        deque_push_back(q2, &node);
+        KeyValPair *kvp = key_val_pair_construct(node->key, node->value);
+        deque_push_back(q2, &kvp);
     }
 
     deque_destroy(q1);
