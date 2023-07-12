@@ -1,6 +1,5 @@
+#include <stdio.h>
 #include <stdlib.h>
-
-#include "deque.h"
 
 #include "binary_tree.h"
 
@@ -15,7 +14,8 @@ KeyValPair *key_val_pair_construct(void *key, void *val) {
 
 void key_val_pair_destroy(KeyValPair *kvp) { free(kvp); }
 
-Node *node_construct(void *key, void *value, Node *left, Node *right, Node *parent) {
+Node *node_construct(void *key, void *value, Node *left, Node *right,
+                     Node *parent) {
     Node *node = malloc(sizeof(Node));
 
     node->key = key;
@@ -50,20 +50,21 @@ void binary_tree_add(BinaryTree *bt, void *key, void *value) {
         return;
     }
 
+    int cmp = 0;
     while (node != NULL) {
         prev = node;
 
-        if (bt->cmp_fn(key, node->key) < 0)
+        cmp = bt->cmp_fn(key, node->key);
+        if (cmp < 0)
             node = node->left;
         else
             node = node->right;
     }
 
-    if (bt->cmp_fn(key, prev->key) < 0)
+    if (cmp < 0)
         prev->left = node_construct(key, value, NULL, NULL, prev);
     else
         prev->right = node_construct(key, value, NULL, NULL, prev);
-
 
     // write a poem about how much i love binary trees
 
@@ -104,7 +105,8 @@ void binary_tree_add(BinaryTree *bt, void *key, void *value) {
     // they are so cool
 }
 
-Node *__binary_tree_add_recursive(BinaryTree *bt, void *key, void *value, Node *p) {
+Node *__binary_tree_add_recursive(BinaryTree *bt, void *key, void *value,
+                                  Node *p) {
     Node *node = bt->root;
 
     if (node == NULL) {
@@ -160,23 +162,83 @@ void binary_tree_add_recursive(BinaryTree *bt, void *key, void *value) {
 
 int binary_tree_empty(BinaryTree *bt) { return bt->root == NULL; }
 
-void binary_tree_remove(BinaryTree *bt, void *key) {}
+Node *__transplant(Node *u, Node *v) {
+    if (u->parent == NULL)
+        return v;
+
+    if (u == u->parent->left)
+        u->parent->left = v;
+    else
+        u->parent->right = v;
+
+    if (v != NULL)
+        v->parent = u->parent;
+
+    return u->parent;
+}
+
+Node *__node_remove(Node *z) {
+    if (z->left == NULL)
+        return __transplant(z, z->right);
+
+    if (z->right == NULL)
+        return __transplant(z, z->left);
+
+    Node *y = __node_min(z->right);
+
+    if (y->parent != z) {
+        __transplant(y, y->right);
+        y->right = z->right;
+        y->right->parent = y;
+    }
+
+    Node *root = __transplant(z, y);
+    y->left = z->left;
+    y->left->parent = y;
+
+    return root;
+}
+
+void binary_tree_remove(BinaryTree *bt, void *key) {
+    Node *t = __node_find(bt->root, key, bt->cmp_fn);
+    if (t == NULL) {
+        fprintf(stderr, "Key not found\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (t->parent == NULL)
+        bt->root = __node_remove(t);
+    else
+        __node_remove(t);
+}
+
+Node *__node_min(Node *node) {
+    while (node->left != NULL)
+        node = node->left;
+
+    return node;
+}
 
 KeyValPair binary_tree_min(BinaryTree *bt) {
     Node *node = bt->root;
 
-    while (node->left != NULL)
-        node = node->left;
+    node = __node_min(node);
 
     KeyValPair kvp = {node->key, node->value};
     return kvp;
 }
 
+Node *__node_max(Node *node) {
+    while (node->right != NULL)
+        node = node->right;
+
+    return node;
+}
+
 KeyValPair binary_tree_max(BinaryTree *bt) {
     Node *node = bt->root;
 
-    while (node->right != NULL)
-        node = node->right;
+    node = __node_max(node);
 
     KeyValPair kvp = {node->key, node->value};
     return kvp;
@@ -194,9 +256,9 @@ KeyValPair binary_tree_max(BinaryTree *bt) {
     // Draw an airplane using text
 
     //    ^
-    //   / \
-    //  /   \
-    // /     \
+    //   / \/
+    //  /   \/
+    // /     \/
     // -------
     // |     |
     // |     |
@@ -216,7 +278,6 @@ KeyValPair binary_tree_max(BinaryTree *bt) {
     //  \   /
     //   \ /
     //    v
-
 }
 
 KeyValPair binary_tree_pop_min(BinaryTree *bt) {
@@ -261,14 +322,15 @@ KeyValPair binary_tree_pop_max(BinaryTree *bt) {
     return kvp;
 }
 
-void *binary_tree_get(BinaryTree *bt, void *key) {
-    Node *node = bt->root;
+Node *__node_find(Node *node, void *key, cmp_fn compar) {
+    if (node == NULL)
+        return NULL;
 
     while (node != NULL) {
-        int cmp = bt->cmp_fn(key, node->key);
+        int cmp = compar(key, node->key);
 
         if (cmp == 0)
-            return node->value;
+            return node;
         else if (cmp < 0)
             node = node->left;
         else
@@ -278,186 +340,85 @@ void *binary_tree_get(BinaryTree *bt, void *key) {
     return NULL;
 }
 
-void binary_tree_destroy(BinaryTree *bt);
+void *binary_tree_get(BinaryTree *bt, void *key) {
+    Node *found = __node_find(bt->root, key, bt->cmp_fn);
+    if (found == NULL)
+        return NULL;
+
+    return found->value;
+}
+
+void __binary_tree_destroy_recursive(Node *node, destructor_fn keyDestroy,
+                                     destructor_fn valDestroy) {
+    if (node == NULL)
+        return;
+
+    __binary_tree_destroy_recursive(node->left, keyDestroy, valDestroy);
+    __binary_tree_destroy_recursive(node->right, keyDestroy, valDestroy);
+
+    if (keyDestroy != NULL)
+        keyDestroy(node->key);
+
+    if (valDestroy != NULL)
+        valDestroy(node->value);
+
+    node_destroy(node);
+}
+
+void binary_tree_destroy(BinaryTree *bt) {
+    __binary_tree_destroy_recursive(bt->root, bt->key_destroy_fn,
+                                    bt->val_destroy_fn);
+    free(bt);
+}
 
 // a funcao abaixo pode ser util para debug, mas nao eh obrigatoria.
 // void binary_tree_print(BinaryTree *bt);
 
-Deque *binary_tree_inorder_traversal(BinaryTree *bt) {
-    Deque *v = deque_construct();
-
-    Node *node = bt->root;
-    Node *prev = NULL;
-
-    while (node != NULL) {
-        if (prev == node->left) {
-            deque_push_back(v, key_val_pair_construct(node->key, node->value));
-
-            if (node->right != NULL) {
-                prev = node;
-                node = node->right;
-            } else {
-                prev = node;
-                node = node->parent;
-            }
-        } else if (prev == node->right) {
-            prev = node;
-            node = node->parent;
-        } else {
-            if (node->left != NULL) {
-                prev = node;
-                node = node->left;
-            } else {
-                deque_push_back(v,
-                                 key_val_pair_construct(node->key, node->value));
-
-                if (node->right != NULL) {
-                    prev = node;
-                    node = node->right;
-                } else {
-                    prev = node;
-                    node = node->parent;
-                }
-            }
-        }
-    }
-
-    return v;
-}
-Deque *binary_tree_preorder_traversal(BinaryTree *bt) {
-    Deque *v = deque_construct();
-
-    Node *node = bt->root;
-    Node *prev = NULL;
-
-    while (node != NULL) {
-        if (prev == node->left) {
-            deque_push_back(v, key_val_pair_construct(node->key, node->value));
-
-            if (node->right != NULL) {
-                prev = node;
-                node = node->right;
-            } else {
-                prev = node;
-                node = node->parent;
-            }
-        } else if (prev == node->right) {
-            prev = node;
-            node = node->parent;
-        } else {
-            if (node->left != NULL) {
-                deque_push_back(v,
-                                 key_val_pair_construct(node->key, node->value));
-
-                prev = node;
-                node = node->left;
-            } else {
-                if (node->right != NULL) {
-                    deque_push_back(v,
-                                     key_val_pair_construct(node->key,
-                                                            node->value));
-
-                    prev = node;
-                    node = node->right;
-                } else {
-                    prev = node;
-                    node = node->parent;
-                }
-            }
-        }
-    }
-
-    return v;
-}
+Deque *binary_tree_inorder_traversal(BinaryTree *bt);
+Deque *binary_tree_preorder_traversal(BinaryTree *bt);
 Deque *binary_tree_postorder_traversal(BinaryTree *bt) {
-    Deque *v = deque_construct();
+    Deque *q1 = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+    Deque *q2 = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
 
-    Node *node = bt->root;
-    Node *prev = NULL;
+    deque_push_front(q1, &bt->root);
 
-    while (node != NULL) {
-        if (prev == node->left) {
-            if (node->right != NULL) {
-                prev = node;
-                node = node->right;
-            } else {
-                deque_push_back(v, key_val_pair_construct(node->key, node->value));
-
-                prev = node;
-                node = node->parent;
-            }
-        } else if (prev == node->right) {
-            deque_push_back(v, key_val_pair_construct(node->key, node->value));
-
-            prev = node;
-            node = node->parent;
-        } else {
-            if (node->left != NULL) {
-                prev = node;
-                node = node->left;
-            } else {
-                if (node->right != NULL) {
-                    prev = node;
-                    node = node->right;
-                } else {
-                    deque_push_back(v,
-                                     key_val_pair_construct(node->key,
-                                                            node->value));
-
-                    prev = node;
-                    node = node->parent;
-                }
-            }
-        }
-    }
-
-    return v;
-}
-Deque *binary_tree_levelorder_traversal(BinaryTree *bt) {
-    Deque *v = deque_construct();
-
-    Deque *q = deque_construct();
-
-    queue_push(q, bt->root);
-
-    while (!queue_empty(q)) {
-        Node *node = queue_front(q);
-        queue_pop(q);
-
-        deque_push_back(v, key_val_pair_construct(node->key, node->value));
+    while (deque_size(q1) > 0) {
+        Node **raw = deque_pop_front(q1);
+        Node *node = *raw;
+        free(raw);
 
         if (node->left != NULL)
-            queue_push(q, node->left);
+            deque_push_front(q1, &node->left);
 
         if (node->right != NULL)
-            queue_push(q, node->right);
+            deque_push_front(q1, &node->right);
+
+        deque_push_back(q2, &node);
     }
 
-    queue_destroy(q);
+    deque_destroy(q1);
 
-    return v;
+    // q2 is already in postorder
+    // my own deque push back has the opposite meaning it should had
+    return q2;
 }
+Deque *binary_tree_levelorder_traversal(BinaryTree *bt);
 
-Deque *binary_tree_inorder_traversal_recursive(BinaryTree *bt) {
-    Deque *v = deque_construct();
+Deque *binary_tree_inorder_traversal_recursive(BinaryTree *bt);
+Deque *binary_tree_preorder_traversal_recursive(BinaryTree *bt);
 
-    binary_tree_inorder_traversal_recursive_helper(bt->root, v);
+void __binary_tree_postorder_traversal_recursive(Node *root, Deque *q) {
+    if (root == NULL)
+        return;
 
-    return v;
-}
+    __binary_tree_postorder_traversal_recursive(root->left, q);
+    __binary_tree_postorder_traversal_recursive(root->right, q);
 
-Deque *binary_tree_preorder_traversal_recursive(BinaryTree *bt) {
-    Deque *v = deque_construct();
-
-    binary_tree_preorder_traversal_recursive_helper(bt->root, v);
-
-    return v;
+    deque_push_front(q, &root);
 }
 
 Deque *binary_tree_postorder_traversal_recursive(BinaryTree *bt) {
-    Deque *v = deque_construct();
-
-    binary_tree_postorder_traversal_recursive_helper(bt->root, v);
-
-    return v;
+    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+    __binary_tree_postorder_traversal_recursive(bt->root, q);
+    return q;
 }
