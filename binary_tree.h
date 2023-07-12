@@ -21,7 +21,7 @@ typedef struct Node {
 
 typedef struct {
     Node *root;
-    cmp_fn cmp_fn;
+    compar_fn cmp_fn;
     destructor_fn key_destroy_fn;
     destructor_fn val_destroy_fn;
 } BinaryTree;
@@ -32,7 +32,7 @@ void key_val_pair_destroy(KeyValPair *kvp);
 Node *node_construct(void *key, void *value, Node *left, Node *right, Node *parent);
 void node_destroy(Node *node);
 
-BinaryTree *binary_tree_construct(cmp_fn cmp_fn, destructor_fn key_destroy_fn,
+BinaryTree *binary_tree_construct(compar_fn compar_fn, destructor_fn key_destroy_fn,
                                   destructor_fn val_destroy_fn);
 void binary_tree_add(BinaryTree *bt, void *key, void *value);
 Node *__binary_tree_add_recursive(BinaryTree *bt, void *key, void *value, Node *p);
@@ -47,7 +47,7 @@ Node *__node_max(Node *node);
 KeyValPair binary_tree_max(BinaryTree *bt);
 KeyValPair binary_tree_pop_min(BinaryTree *bt);
 KeyValPair binary_tree_pop_max(BinaryTree *bt);
-Node *__node_find(Node *node, void *key, cmp_fn compar);
+Node *__node_find(Node *node, void *key, compar_fn compar);
 void *binary_tree_get(BinaryTree *bt, void *key);
 void __binary_tree_destroy_recursive(Node *node, destructor_fn keyDestroy, destructor_fn valDestroy);
 void binary_tree_destroy(BinaryTree *bt);

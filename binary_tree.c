@@ -29,7 +29,8 @@ Node *node_construct(void *key, void *value, Node *left, Node *right,
 
 void node_destroy(Node *node) { free(node); }
 
-BinaryTree *binary_tree_construct(cmp_fn cmp_fn, destructor_fn key_destroy_fn,
+BinaryTree *binary_tree_construct(compar_fn cmp_fn,
+                                  destructor_fn key_destroy_fn,
                                   destructor_fn val_destroy_fn) {
     BinaryTree *bt = malloc(sizeof(BinaryTree));
 
@@ -55,7 +56,12 @@ void binary_tree_add(BinaryTree *bt, void *key, void *value) {
         prev = node;
 
         cmp = bt->cmp_fn(key, node->key);
-        if (cmp < 0)
+
+        if (cmp == 0) {
+            bt->val_destroy_fn(node->value);
+            node->value = value;
+            return;
+        } else if (cmp < 0)
             node = node->left;
         else
             node = node->right;
@@ -322,7 +328,7 @@ KeyValPair binary_tree_pop_max(BinaryTree *bt) {
     return kvp;
 }
 
-Node *__node_find(Node *node, void *key, cmp_fn compar) {
+Node *__node_find(Node *node, void *key, compar_fn compar) {
     if (node == NULL)
         return NULL;
 
@@ -431,8 +437,10 @@ Deque *binary_tree_preorder_traversal(BinaryTree *bt) {
     return q;
 }
 Deque *binary_tree_postorder_traversal(BinaryTree *bt) {
-    Deque *q1 = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
-    Deque *q2 = deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+    Deque *q1 =
+        deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
+    Deque *q2 =
+        deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
 
     deque_push_front(q1, &bt->root);
 

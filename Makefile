@@ -6,7 +6,7 @@ all:
 	gcc $(FLAGS) -o main main.c binary_tree.c black_magic.c deque.c person.c -I. -lm
 
 clean:
-	rm main
+	rm -f main libed.a libsearch.a $(LIBSEARCH_DEPS) $(LIBED_DEPS) jheam_ross_2022100890.zip $(VALGRINDOUT)
 
 zip: clean
 	zip -r jheam_ross_2022100890.zip . \
