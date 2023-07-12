@@ -39,7 +39,7 @@ Node *__binary_tree_add_recursive(BinaryTree *bt, void *key, void *value, Node *
 void binary_tree_add_recursive(BinaryTree *bt, void *key, void *value);
 int binary_tree_empty(BinaryTree *bt);
 Node *__transplant(Node *u, Node *v);
-Node *__node_remove(Node *z);
+Node *__node_remove(Node *z, destructor_fn keyDestroy, destructor_fn valDestroy);
 void binary_tree_remove(BinaryTree *bt, void *key);
 Node *__node_min(Node *node);
 KeyValPair binary_tree_min(BinaryTree *bt);

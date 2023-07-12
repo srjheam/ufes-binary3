@@ -56,8 +56,8 @@ void binary_tree_add(BinaryTree *bt, void *key, void *value) {
         prev = node;
 
         cmp = bt->cmp_fn(key, node->key);
-
         if (cmp == 0) {
+            bt->key_destroy_fn(key);
             bt->val_destroy_fn(node->value);
             node->value = value;
             return;
@@ -183,12 +183,27 @@ Node *__transplant(Node *u, Node *v) {
     return u->parent;
 }
 
-Node *__node_remove(Node *z) {
-    if (z->left == NULL)
-        return __transplant(z, z->right);
+Node *__node_remove(Node *z, destructor_fn keyDestroy,
+                    destructor_fn valDestroy) {
+    if (z->left == NULL) {
+        Node *r = __transplant(z, z->right);
 
-    if (z->right == NULL)
-        return __transplant(z, z->left);
+        keyDestroy(z->key);
+        valDestroy(z->value);
+        node_destroy(z);
+
+        return r;
+    }
+
+    if (z->right == NULL) {
+        Node *r = __transplant(z, z->left);
+
+        keyDestroy(z->key);
+        valDestroy(z->value);
+        node_destroy(z);
+
+        return r;
+    }
 
     Node *y = __node_min(z->right);
 
@@ -202,6 +217,10 @@ Node *__node_remove(Node *z) {
     y->left = z->left;
     y->left->parent = y;
 
+    keyDestroy(z->key);
+    valDestroy(z->value);
+    node_destroy(z);
+
     return root;
 }
 
@@ -213,9 +232,9 @@ void binary_tree_remove(BinaryTree *bt, void *key) {
     }
 
     if (t->parent == NULL)
-        bt->root = __node_remove(t);
+        bt->root = __node_remove(t, bt->key_destroy_fn, bt->val_destroy_fn);
     else
-        __node_remove(t);
+        __node_remove(t, bt->key_destroy_fn, bt->val_destroy_fn);
 }
 
 Node *__node_min(Node *node) {
