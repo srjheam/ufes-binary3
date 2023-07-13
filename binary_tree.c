@@ -111,16 +111,20 @@ void binary_tree_add(BinaryTree *bt, void *key, void *value) {
     // they are so cool
 }
 
-Node *__binary_tree_add_recursive(Node *p, void *key, void *value, compar_fn compar, destructor_fn keyDestroy, destructor_fn valDestroy) {
+Node *__binary_tree_add_recursive(Node *p, void *key, void *value,
+                                  compar_fn compar, destructor_fn keyDestroy,
+                                  destructor_fn valDestroy) {
     if (p == NULL) {
         return node_construct(key, value, NULL, NULL, NULL);
     }
 
     if (compar(key, p->key) < 0) {
-        p->left = __binary_tree_add_recursive(p, key, value, compar, keyDestroy, valDestroy);
+        p->left = __binary_tree_add_recursive(p, key, value, compar, keyDestroy,
+                                              valDestroy);
         p->left->parent = p;
     } else {
-        p->right = __binary_tree_add_recursive(p, key, value, compar, keyDestroy, valDestroy);
+        p->right = __binary_tree_add_recursive(p, key, value, compar,
+                                               keyDestroy, valDestroy);
         p->right->parent = p;
     }
 
@@ -162,14 +166,20 @@ Node *__binary_tree_add_recursive(Node *p, void *key, void *value, compar_fn com
 }
 
 void binary_tree_add_recursive(BinaryTree *bt, void *key, void *value) {
-    bt->root = __binary_tree_add_recursive(bt->root, key, value, bt->cmp_fn, bt->key_destroy_fn, bt->val_destroy_fn);
+    bt->root =
+        __binary_tree_add_recursive(bt->root, key, value, bt->cmp_fn,
+                                    bt->key_destroy_fn, bt->val_destroy_fn);
 }
 
 int binary_tree_empty(BinaryTree *bt) { return bt->root == NULL; }
 
 Node *__transplant(Node *u, Node *v) {
-    if (u->parent == NULL)
+    if (u->parent == NULL) {
+        if (v)
+            v->parent = NULL;
+
         return v;
+    }
 
     if (u == u->parent->left)
         u->parent->left = v;
@@ -399,7 +409,8 @@ void binary_tree_destroy(BinaryTree *bt) {
 // void binary_tree_print(BinaryTree *bt);
 
 Deque *binary_tree_inorder_traversal(BinaryTree *bt) {
-    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
+    Deque *q = deque_construct(__SIZEOF_POINTER__,
+                               (destructor_fn)key_val_pair_destroy);
 
     Node *node = bt->root;
 
@@ -418,7 +429,8 @@ Deque *binary_tree_inorder_traversal(BinaryTree *bt) {
                 prev->right = node;
                 node = node->left;
             } else {
-                KeyValPair *kvp = key_val_pair_construct(node->key, node->value);
+                KeyValPair *kvp =
+                    key_val_pair_construct(node->key, node->value);
                 deque_push_front(q, &kvp);
                 prev->right = NULL;
                 node = node->right;
@@ -429,7 +441,8 @@ Deque *binary_tree_inorder_traversal(BinaryTree *bt) {
     return q;
 }
 Deque *binary_tree_preorder_traversal(BinaryTree *bt) {
-    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
+    Deque *q = deque_construct(__SIZEOF_POINTER__,
+                               (destructor_fn)key_val_pair_destroy);
 
     Node *node = bt->root;
 
@@ -445,7 +458,8 @@ Deque *binary_tree_preorder_traversal(BinaryTree *bt) {
                 prev = prev->right;
 
             if (prev->right == NULL) {
-                KeyValPair *kvp = key_val_pair_construct(node->key, node->value);
+                KeyValPair *kvp =
+                    key_val_pair_construct(node->key, node->value);
                 deque_push_front(q, &kvp);
                 prev->right = node;
                 node = node->left;
@@ -461,8 +475,8 @@ Deque *binary_tree_preorder_traversal(BinaryTree *bt) {
 Deque *binary_tree_postorder_traversal(BinaryTree *bt) {
     Deque *q1 =
         deque_construct(__SIZEOF_POINTER__, (destructor_fn)node_destroy);
-    Deque *q2 =
-        deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
+    Deque *q2 = deque_construct(__SIZEOF_POINTER__,
+                                (destructor_fn)key_val_pair_destroy);
 
     deque_push_front(q1, &bt->root);
 
@@ -490,15 +504,16 @@ Deque *binary_tree_postorder_traversal(BinaryTree *bt) {
 Deque *binary_tree_levelorder_traversal(BinaryTree *bt) {
     Deque *q = deque_construct(__SIZEOF_POINTER__, NULL);
 
-    Deque *r = deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
-    
+    Deque *r = deque_construct(__SIZEOF_POINTER__,
+                               (destructor_fn)key_val_pair_destroy);
+
     deque_push_back(q, &bt->root);
 
     while (deque_size(q) > 0) {
         Node **raw = deque_pop_front(q);
         Node *node = *raw;
         free(raw);
-        
+
         if (node) {
             KeyValPair *kvp = key_val_pair_construct(node->key, node->value);
             deque_push_front(r, &kvp);
@@ -526,7 +541,8 @@ void __binary_tree_inorder_traversal_recursive(Node *root, Deque *q) {
 }
 
 Deque *binary_tree_inorder_traversal_recursive(BinaryTree *bt) {
-    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
+    Deque *q = deque_construct(__SIZEOF_POINTER__,
+                               (destructor_fn)key_val_pair_destroy);
     __binary_tree_inorder_traversal_recursive(bt->root, q);
     return q;
 }
@@ -543,7 +559,8 @@ void __binary_tree_preorder_traversal_recursive(Node *root, Deque *q) {
 }
 
 Deque *binary_tree_preorder_traversal_recursive(BinaryTree *bt) {
-    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
+    Deque *q = deque_construct(__SIZEOF_POINTER__,
+                               (destructor_fn)key_val_pair_destroy);
     __binary_tree_preorder_traversal_recursive(bt->root, q);
     return q;
 }
@@ -560,7 +577,8 @@ void __binary_tree_postorder_traversal_recursive(Node *root, Deque *q) {
 }
 
 Deque *binary_tree_postorder_traversal_recursive(BinaryTree *bt) {
-    Deque *q = deque_construct(__SIZEOF_POINTER__, (destructor_fn)key_val_pair_destroy);
+    Deque *q = deque_construct(__SIZEOF_POINTER__,
+                               (destructor_fn)key_val_pair_destroy);
     __binary_tree_postorder_traversal_recursive(bt->root, q);
     return q;
 }
